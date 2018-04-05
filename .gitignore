@@ -1,8 +1,9 @@
 # Kernel make outputs
 
-*.mod
+*.mod.c
 *.o
 *.ko
 *.mod.o
 *.order
 *.symvers
+*/.*
