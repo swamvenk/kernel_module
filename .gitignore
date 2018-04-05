@@ -1,0 +1,8 @@
+# Kernel make outputs
+
+*.mod
+*.o
+*.ko
+*.mod.o
+*.order
+*.symvers
