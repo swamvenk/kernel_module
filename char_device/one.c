@@ -6,7 +6,7 @@
 #include <linux/types.h>
 #include <linux/fs.h>
 #include <linux/proc_fs.h>
-#include <asm/uaccess.h>
+#include <linux/uaccess.h>
 
 #define MAJOR_NUMBER 61
 
@@ -26,6 +26,7 @@ struct file_operations onebyte_fops = {
 };
 
 char *onebyte_data = NULL;
+int buf_size = 0;
 
 int onebyte_open(struct inode *inode, struct file *filep)
 {
@@ -37,14 +38,29 @@ int onebyte_release(struct inode *inode, struct file *filep)
 	return 0; // always successful
 }
 
-ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
-{
+ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos){
 	/*please complete the function on your own*/
+	int error = 0;
+	error = copy_to_user(buf, onebyte_data, buf_size);
+	if(error == 0){
+		printk(KERN_INFO "Successfully sent one byte to the user");
+		return (buf_size--);
+
+	} else {
+		printk(KERN_ALERT "Error sending one byte to user");
+		return -EFAULT;
+	}
 }
 
-ssize_t onebyte_write(struct file *filep, const char *buf, size_t count, loff_t *f_pos)
-{
+ssize_t onebyte_write(struct file *filep, const char *buf, size_t count, loff_t *f_pos){
 	/*please complete the function on your own*/
+	*onebyte_data = *buf;
+	buf_size = 1;
+	if(count > 1){
+		printk(KERN_ALERT "Write error. No space on the device");
+		return -ENOSPC;
+	} 
+	return buf_size;
 }
 
 static int onebyte_init(void)
@@ -68,6 +84,7 @@ static int onebyte_init(void)
 	}
 	// initialize the value to be X
 	*onebyte_data = 'X';
+	buf_size = 1;
 	printk(KERN_ALERT "This is a onebyte device module\n");
 	return 0;
 }
